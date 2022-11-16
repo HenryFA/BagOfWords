@@ -1,0 +1,94 @@
+import re
+from bs4 import BeautifulSoup
+import requests
+import pandas
+
+#aluno:
+#Pedro Henrique Faria Amadeu
+
+# Sua tarefa será  gerar a matriz termo documento, dos documentos recuperados da internet e 
+# imprimir esta matriz na tela. Para tanto: 
+#   a) Considere que todas as listas de sentenças devem ser transformadas em listas de vetores, 
+# onde cada item será uma das palavras da sentença. 
+#   b) Todos  os  vetores  devem  ser  unidos  em  um  corpus  único  formando  uma  lista  de  vetores, 
+# onde cada item será um lexema.
+#   c) Este único corpus será usado para gerar o vocabulário. 
+#   d) O  resultado  esperado  será  uma  matriz  termo  documento  criada  a  partir  da  aplicação  da 
+# técnica bag of Words em todo o corpus.
+
+
+#armazenar as palavras e sentenças
+words = [] 
+listas = [] 
+
+# armazena o vetor de numero de repetições de uma palavra
+vetor = [] 
+
+
+endereço = ['https://en.wikipedia.org/wiki/Natural_language_processing','https://www.ibm.com/cloud/learn/natural-language-processing',
+            'https://www.techtarget.com/searchenterpriseai/definition/natural-language-processing-NLP','https://www.coursera.org/specializations/natural-language-processing',
+            'https://www.datarobot.com/blog/what-is-natural-language-processing-introduction-to-nlp/']
+
+
+# verifica se a palavra já existe na lista, cria um set vazio
+# enquanto percorre a lista adiciona a palvra no set
+
+def existe(s): 
+  empty = set()
+  
+  for array in s:
+    for word in array.split():
+        empty.add(word) 
+
+  return empty 
+
+
+# guarda o texto do site do site, e ignora tanto script quanto stye do site
+# remove espaços desnecessarios e utiliza simbolos para separar as sentenças
+# bota as sentenças criadas em uma lista de sentenças
+
+for n in endereço:
+    url = requests.get(n).content
+    link = BeautifulSoup(url,"html.parser")
+    
+    for data in link(['style','script']):
+        data.extract()
+    word = ' '.join(link.stripped_strings)
+    word = re.sub(r"[\n\t]", "", word)
+    sentence = re.split("[!?.;:]", word)
+    words.append(" ".join(sentence))
+
+
+
+
+#chamar existe
+listas = existe(words) 
+
+#usa set para transformar o conjunto em listas e buscar seu index
+listas = list(listas) 
+
+#imprime o len
+print(len(listas)) 
+
+
+# gera a matriz termo documento adicionando em um vetor de palavras
+# percorre o texto adicionando +1 na posição da palavra
+def bag(palavras, texto): 
+  array = [0] * len(palavras) 
+  
+  for string in texto.split(): 
+    array[palavras.index(string)] += 1 
+    
+  return array 
+
+#adiciona vetores na lista
+for array in words:
+    vetor.append(bag(listas, array))
+
+
+#geratabela de palavras com o pandas
+tabela = pandas.DataFrame(vetor, columns=listas) 
+
+#mostra a tabela de palavras criadas
+tabela
+
